@@ -73,7 +73,7 @@ def search_reddit_posts(query, limit, time_filter, sort, subreddit=None):
 
 def get_sentiment(text):
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "You are a sentiment analysis tool. Respond with one word describing the primary emotion in the text. Examples include: positive, negative, neutral, angry, depressed, sad, excited, happy, anxious, etc."},
             {"role": "user", "content": f"Analyze the primary emotion in this text: {text}"}
