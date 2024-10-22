@@ -118,7 +118,7 @@ def analyze_reddit_posts(user_prompt):
     ]
 
     response = client.chat.completions.create(
-        model=os.environ.get("MODEL"),
+        model="gpt-4o-mini",
         messages=messages,
         functions=functions,
         function_call="auto",
@@ -149,7 +149,7 @@ def analyze_reddit_posts(user_prompt):
         })
         
         second_response = client.chat.completions.create(
-            model=os.environ.get("MODEL"),
+            model="gpt-4o-mini",
             messages=messages,
             stream=True
         )
