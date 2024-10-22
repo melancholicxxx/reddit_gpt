@@ -73,10 +73,10 @@ def search_reddit_posts(query, limit, time_filter, sort, subreddit=None):
 
 def get_sentiment(text):
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are a sentiment analysis tool. Respond with one word describing the primary emotion in the text. Examples include: positive, negative, neutral, angry, depressed, sad, excited, happy, anxious, etc."},
-            {"role": "user", "content": f"Analyze the primary emotion in this text: {text}"}
+            {"role": "system", "content": "You are a sentiment analysis tool. Respond with one word describing the sentiment of the text. Only use: positive, negative, or neutral. Map anger, sadness, greed and more to Negative sentiment. Joy, excited, hope and more to Positive sentiment. Everything else is neutral."},
+            {"role": "user", "content": f"Analyze the sentiment of this text: {text}"}
         ],
         max_tokens=1
     )
@@ -133,7 +133,7 @@ def analyze_reddit_posts(user_prompt):
         },
         {
             "name": "filter_reddit_posts",
-            "description": "Filter Reddit posts based on sentiment and limit the number of results",
+            "description": "Filter Reddit posts based on sentiment. Map anger, sadness, greed and more to negative sentiment. Joy, excited, hope and more to Positive sentiment,  and limit the number of results",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -146,7 +146,8 @@ def analyze_reddit_posts(user_prompt):
                     },
                     "sentiment": {
                         "type": "string",
-                        "description": "Sentiment to filter by (optional). Can be any emotion like positive, negative, neutral, angry, depressed, sad, excited, happy, anxious, etc."
+                        "enum": ["positive", "negative", "neutral"],
+                        "description": "Sentiment to filter by (optional). Map anger, sadness, greed and more to negative sentiment, Joy, excited, hope and more to Positive sentiment. Everything else is Neutral sentiment"
                     },
                     "max_posts": {
                         "type": "integer",
@@ -159,7 +160,7 @@ def analyze_reddit_posts(user_prompt):
     ]
 
     messages = [
-        {"role": "system", "content": "You are a helpful assistant that analyzes Reddit posts. Use the search_reddit_posts function to search for relevant posts across all subreddits or a specific subreddit based on the user's request. Then use the filter_reddit_posts function to apply sentiment analysis and limit the results. Always include the URL, subreddit name, created date and score for each Reddit post in your analysis. If the user specifies a subreddit, make sure to include it in the function call. The sentiment analysis now includes a wider range of emotions."},
+        {"role": "system", "content": "You are a helpful assistant that analyzes Reddit posts. Use the search_reddit_posts function to search for relevant posts across all subreddits or a specific subreddit based on the user's request. Then use the filter_reddit_posts function to apply sentiment analysis and limit the results. Always include the URL, subreddit name, created date and score for each Reddit post in your analysis. If the user specifies a subreddit, make sure to include it in the function call. The sentiment analysis now only includes positive, negative, or neutral. Map anger, sadness, greed and more to negative sentiment. Joy, excited, hope and more to Positive sentiment. Everything else is neutral sentiment."},
         {"role": "user", "content": user_prompt}
     ]
 
@@ -196,7 +197,7 @@ def analyze_reddit_posts(user_prompt):
             })
             
             filter_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=messages,
                 functions=functions,
                 function_call={"name": "filter_reddit_posts"},
@@ -218,7 +219,7 @@ def analyze_reddit_posts(user_prompt):
             })
             
             final_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=messages,
                 stream=True
             )
@@ -231,7 +232,7 @@ def main():
     st.set_page_config(page_title="Reddit GPT")
     st.title("Reddit GPT")
 
-    user_prompt = st.text_input("Put r/... to get posts from a specific subreddit, or leave specificities out to search across reddit", placeholder="what are the hottest posts about Elon Musk now?")
+    user_prompt = st.text_input("Type r/... to get posts from a specific subreddit, or leave specificities out to search across all of reddit", placeholder="what are the hottest posts about Elon Musk now?")
     
     if user_prompt:
         with st.spinner("Analyzing Reddit posts..."):
